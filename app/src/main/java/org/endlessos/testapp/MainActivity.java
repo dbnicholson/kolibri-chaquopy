@@ -21,11 +21,7 @@ public class MainActivity extends Activity {
 
         Python python = Python.getInstance();
         PyObject main = python.getModule("main");
-        try {
-            PyObject out = main.callAttr("test", "test");
-            Log.i(TAG, out.toString());
-        } catch (PyException e) {
-            Log.e(TAG, e.getMessage());
-        }
+        PyObject out = main.callAttr("test", "test");
+        Log.i(TAG, out.toString());
     }
 }
