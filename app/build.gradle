@@ -26,8 +26,6 @@ android {
             pip {
                 install "https://github.com/learningequality/kolibri/releases/download/v0.16.0-alpha20/kolibri-0.16.0a20-py2.py3-none-any.whl"
             }
-
-            extractPackages "kolibri"
         }
     }
 

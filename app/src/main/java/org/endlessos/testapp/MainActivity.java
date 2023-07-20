@@ -33,8 +33,6 @@ public class MainActivity extends Activity {
         File kolibriHome = new File(this.getFilesDir(), "kolibri");
         mainModule.callAttr("setup", kolibriHome.toString());
 
-        mainModule.callAttr("get_url").toString();
-
         serverThread = new Thread(new ServerThread(), "ServerThread");
         serverThread.start();
 
