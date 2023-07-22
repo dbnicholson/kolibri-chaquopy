@@ -13,6 +13,9 @@ def setup(kolibri_home):
     from kolibri.utils import env
     env.set_env()
 
+    from kolibri.utils.main import initialize
+    initialize(debug=True)
+
 
 def start():
     from kolibri.utils import server
