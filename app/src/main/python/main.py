@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 def setup(kolibri_home):
     os.environ['KOLIBRI_HOME'] = kolibri_home
-    os.environ['KOLIBRI_DEPLOYMENT_LISTEN_ADDRESS'] = '127.0.0.1'
+    # os.environ['KOLIBRI_DEPLOYMENT_LISTEN_ADDRESS'] = '127.0.0.1'
+    os.environ['KOLIBRI_RUN_MODE'] = 'test'
     os.environ['ANDROID_ARGUMENT'] = ''
 
     from kolibri.utils import env
@@ -16,27 +17,18 @@ def setup(kolibri_home):
     from kolibri.utils.main import initialize
     initialize(debug=True)
 
+    from kolibri.core.analytics.tasks import schedule_ping
+    from kolibri.core.deviceadmin.tasks import schedule_vacuum
 
-def start():
-    from kolibri.utils import server
-    server.start()
+    schedule_ping()
+    schedule_vacuum()
+
+
+def start(activity):
+    import server
+    server.start(activity)
 
 
 def stop():
-    from kolibri.utils import server
+    import server
     server.stop()
-
-
-def get_url():
-    from kolibri.utils import server
-
-    deadline = time.time() + 10
-    while True:
-        try:
-            _, _, port = server.get_status()
-        except server.NotRunning:
-            if time.time() >= deadline:
-                raise
-            time.sleep(0.1)
-        else:
-            return f'http://127.0.0.1:{port}/'

@@ -13,6 +13,7 @@ import com.chaquo.python.Python;
 public class MainActivity extends Activity {
     private static final String TAG = "MainActivity";
 
+    private WebView view;
     private Python python;
     private PyObject mainModule;
     private Thread serverThread;
@@ -24,7 +25,7 @@ public class MainActivity extends Activity {
 
         Log.i(TAG, "Creating activity");
 
-        WebView view = new WebView(this);
+        view = new WebView(this);
         setContentView(view);
 
         python = Python.getInstance();
@@ -33,18 +34,31 @@ public class MainActivity extends Activity {
         File kolibriHome = new File(this.getFilesDir(), "kolibri");
         mainModule.callAttr("setup", kolibriHome.toString());
 
-        serverThread = new Thread(new ServerThread(), "ServerThread");
+        serverThread = new Thread(new ServerThread(this), "ServerThread");
         serverThread.start();
+    }
 
-        serverUrl = mainModule.callAttr("get_url").toString();
-        view.loadUrl(serverUrl);
+    public void loadUrl(String url) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, "Loading URL " + url);
+                view.loadUrl(url);
+            }
+        });
     }
 
     class ServerThread implements Runnable {
+        private MainActivity activity;
+
+        public ServerThread(MainActivity activity) {
+            this.activity = activity;
+        }
+
         @Override
         public void run() {
             Log.i(TAG, "Starting Kolibri server");
-            mainModule.callAttr("start");
+            mainModule.callAttr("start", activity);
         }
     }
 
