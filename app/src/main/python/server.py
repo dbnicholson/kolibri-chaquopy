@@ -2,7 +2,6 @@ import logging
 from kolibri.utils.server import stop as kolibri_stop
 from kolibri.utils.server import BaseKolibriProcessBus
 from kolibri.utils.server import KolibriServerPlugin
-from kolibri.utils.server import ZeroConfPlugin
 from kolibri.utils.server import ZipContentServerPlugin
 from magicbus.plugins import SimplePlugin
 
@@ -23,9 +22,6 @@ class AppPlugin(SimplePlugin):
 
 def start(activity):
     kolibri_bus = BaseKolibriProcessBus()
-    # Setup zeroconf plugin
-    zeroconf_plugin = ZeroConfPlugin(kolibri_bus, kolibri_bus.port)
-    zeroconf_plugin.subscribe()
 
     kolibri_server = KolibriServerPlugin(
         kolibri_bus,

@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def setup(kolibri_home):
     os.environ['KOLIBRI_HOME'] = kolibri_home
-    # os.environ['KOLIBRI_DEPLOYMENT_LISTEN_ADDRESS'] = '127.0.0.1'
+    os.environ['KOLIBRI_DEPLOYMENT_LISTEN_ADDRESS'] = '127.0.0.1'
     os.environ['KOLIBRI_RUN_MODE'] = 'test'
     os.environ['ANDROID_ARGUMENT'] = ''
 
