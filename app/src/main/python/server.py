@@ -1,7 +1,10 @@
 import logging
-from kolibri.utils.server import stop as kolibri_stop
 from kolibri.utils.server import BaseKolibriProcessBus
+from kolibri.utils.server import PROCESS_CONTROL_FLAG
 from kolibri.utils.server import KolibriServerPlugin
+from kolibri.utils.server import STATUS_STOPPED
+from kolibri.utils.server import STOP
+from kolibri.utils.server import wait_for_status
 from kolibri.utils.server import ZipContentServerPlugin
 from magicbus.plugins import SimplePlugin
 
@@ -43,4 +46,6 @@ def start(activity):
 
 
 def stop():
-    kolibri_stop()
+    with open(PROCESS_CONTROL_FLAG, "w") as f:
+        f.write(STOP)
+    wait_for_status(STATUS_STOPPED, timeout=10)
