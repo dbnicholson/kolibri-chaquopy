@@ -10,6 +10,7 @@ public class ActivityTest {
     @Test
     public void testLaunch() {
         try(ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            assertEquals(State.RESUMED, scenario.getState());
         }
     }
 
