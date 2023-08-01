@@ -18,6 +18,7 @@ class AppPlugin(SimplePlugin):
         start_url = f"http://127.0.0.1:{port}/"
         logger.info(f"Ready on {start_url}")
         self.activity.loadUrl(start_url)
+        self.activity.setServerReady()
 
 
 def start(activity):
