@@ -1,6 +1,5 @@
 import logging
 import os
-import time
 
 logger = logging.getLogger(__name__)
 kolibri_initialized = False
@@ -32,13 +31,3 @@ def setup(kolibri_home):
     schedule_vacuum()
 
     kolibri_initialized = True
-
-
-def start(activity):
-    import server
-    server.start(activity)
-
-
-def stop():
-    import server
-    server.stop()
