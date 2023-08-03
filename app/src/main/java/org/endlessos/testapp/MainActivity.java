@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
     private WebView view;
     private Python python;
     private PyObject serverBus;
+    private String serverUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,11 +53,11 @@ public class MainActivity extends Activity {
 
         Log.i(TAG, "Starting Kolibri server");
         serverBus.callAttr("start");
-        Log.d(TAG, "Server ready");
+        serverUrl = serverBus.callAttr("get_url").toString();
+        Log.d(TAG, "Server ready on " + serverUrl);
 
-        String url = serverBus.callAttr("get_url").toString();
-        Log.i(TAG, "Loading URL " + url);
-        view.loadUrl(url);
+        Log.i(TAG, "Loading URL " + serverUrl);
+        view.loadUrl(serverUrl);
     }
 
     @Override
