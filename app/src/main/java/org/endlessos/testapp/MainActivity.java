@@ -5,7 +5,10 @@ import java.io.File;
 import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 
@@ -23,6 +26,19 @@ public class MainActivity extends Activity {
         Log.i(TAG, "Creating activity");
 
         view = new WebView(this);
+        WebSettings viewSettings = view.getSettings();
+        viewSettings.setJavaScriptEnabled(true);
+        viewSettings.setDomStorageEnabled(true);
+        viewSettings.setAllowFileAccessFromFileURLs(true);
+        viewSettings.setAllowUniversalAccessFromFileURLs(true);
+        viewSettings.setMediaPlaybackRequiresUserGesture(false);
+        view.setWebViewClient(new WebViewClient() {
+             @Override
+             public boolean shouldOverrideUrlLoading (WebView view,
+                                                      WebResourceRequest request) {
+                 return false;
+             }
+        });
         setContentView(view);
 
         python = Python.getInstance();
