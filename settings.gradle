@@ -1,6 +1,10 @@
 pluginManagement {
     repositories {
-        mavenLocal()
+        // Local repo with unreleased chaquopy
+        // FIXME: Remove this when 15.0.1 is released and published
+        maven {
+            url uri("repo")
+        }
         gradlePluginPortal()
         google()
         mavenCentral()
