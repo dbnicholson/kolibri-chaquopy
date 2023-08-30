@@ -3,7 +3,10 @@ package org.endlessos.testapp;
 import java.io.File;
 
 import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
@@ -44,6 +47,12 @@ public class KolibriService extends Service {
         serverBus.callAttr("start");
         serverUrl = serverBus.callAttr("get_url").toString();
         Log.d(TAG, "Server started on " + serverUrl);
+
+        Intent intent = new Intent(this, WorkerService.class);
+        Log.i(TAG, "Binding Worker service");
+        if (!bindService(intent, connection, Context.BIND_AUTO_CREATE)) {
+            Log.e(TAG, "Could not bind to Worker service");
+        }
     }
 
     @Override
@@ -51,9 +60,24 @@ public class KolibriService extends Service {
         Log.i(TAG, "Stopping Kolibri server");
         serverBus.callAttr("stop");
         Log.d(TAG, "Server stopped");
+
+        Log.i(TAG, "Unbinding Worker service");
+        unbindService(connection);
     }
 
     public String getServerUrl() {
         return serverUrl;
     }
+
+    private ServiceConnection connection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder ibinder) {
+            Log.d(TAG, "Worker service connected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "Worker service disconnected");
+        }
+    };
 }

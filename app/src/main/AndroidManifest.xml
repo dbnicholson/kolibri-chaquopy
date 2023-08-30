@@ -18,6 +18,9 @@
 
         <service android:name=".KolibriService"
                  android:exported="false" />
+
+        <service android:name=".WorkerService"
+                 android:exported="false" />
     </application>
 
 </manifest>
