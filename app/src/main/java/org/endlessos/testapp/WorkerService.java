@@ -32,7 +32,7 @@ public class WorkerService extends Service {
 
         KolibriUtils.setupKolibri(this);
 
-        PyObject workerModule = python.getModule("worker");
+        PyObject workerModule = python.getModule("testapp.worker");
         workerBus = workerModule.callAttr("WorkerProcessBus", this);
 
         Log.i(TAG, "Starting Kolibri worker");

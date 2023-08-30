@@ -36,7 +36,7 @@ public class KolibriService extends Service {
 
         KolibriUtils.setupKolibri(this);
 
-        PyObject serverModule = python.getModule("server");
+        PyObject serverModule = python.getModule("testapp.server");
         serverBus = serverModule.callAttr("AppProcessBus", this);
 
         Log.i(TAG, "Starting Kolibri server");

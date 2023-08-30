@@ -18,7 +18,7 @@ public class KolibriUtils {
         final String kolibriHome = getKolibriHome(context).toString();
 
         Python python = Python.getInstance();
-        PyObject mainModule = python.getModule("main");
+        PyObject mainModule = python.getModule("testapp.main");
         Log.i(TAG, "Setting up Kolibri in " + kolibriHome);
         mainModule.callAttr("setup", kolibriHome);
     }
