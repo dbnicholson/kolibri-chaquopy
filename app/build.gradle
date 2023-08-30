@@ -5,6 +5,12 @@ plugins {
     id 'com.chaquo.python'
 }
 
+Directory commonAssetsDirectory = layout.buildDirectory.get().dir("generated/${name}/assets/common")
+
+Directory variantAssetsDirectory(ApplicationVariant variant) {
+    return layout.buildDirectory.get().dir("generated/${name}/assets/${variant.dirName}")
+}
+
 android {
     namespace "org.endlessos.testapp"
 
@@ -63,10 +69,20 @@ android {
         }
     }
 
+    sourceSets {
+        main {
+            // Add common and per variant generated assets directories
+            assets.srcDir(commonAssetsDirectory)
+            applicationVariants.all { variant ->
+                assets.srcDir(variantAssetsDirectory(variant))
+            }
+        }
+    }
+
     applicationVariants.all { variant ->
-        def task = createWelcomeScreenTask(variant)
+        def welcomeScreenTask = createWelcomeScreenTask(variant)
         variant.mergeAssetsProvider.configure {
-            dependsOn(task)
+            dependsOn(welcomeScreenTask)
         }
     }
 }
@@ -81,19 +97,11 @@ dependencies {
 
 TaskProvider createWelcomeScreenTask(ApplicationVariant variant) {
     def taskVariant = variant.name.capitalize()
-    def welcomeDir = project.layout.buildDirectory.dir("pip/${variant.dirName}/common/kolibri_explore_plugin/welcomeScreen")
-    def genDir = project.layout.buildDirectory.dir("generated/kolibri/${variant.dirName}/welcomeScreen")
-    return tasks.register("generate${taskVariant}WelcomeScreenAssets") {
-        inputs.dir(welcomeDir)
-        outputs.dir(genDir)
+    def welcomeDir = layout.buildDirectory.dir("pip/${variant.dirName}/common/kolibri_explore_plugin/welcomeScreen")
+    def assetsDir = variantAssetsDirectory(variant).dir('welcomeScreen')
+    return tasks.register("generate${taskVariant}WelcomeScreenAssets", Sync) {
+        from welcomeDir
+        into assetsDir
         dependsOn("generate${taskVariant}PythonRequirements")
-        doLast {
-            project.delete(genDir)
-            project.mkdir(genDir)
-            project.copy {
-                from welcomeDir
-                into genDir
-            }
-        }
     }
 }
