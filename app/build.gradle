@@ -11,6 +11,45 @@ Directory variantAssetsDirectory(ApplicationVariant variant) {
     return layout.buildDirectory.get().dir("generated/${name}/assets/${variant.dirName}")
 }
 
+String getUrlEtag(URL url) {
+    def conn = url.openConnection()
+    conn.method = 'HEAD'
+    conn.instanceFollowRedirects = true
+    conn.connect()
+    if (conn.responseCode != 200) {
+        throw new Exception("Retrieving ${url} failed: ${conn.responseCode} ${conn.responseMessage}")
+    }
+    return conn.getHeaderField("ETag")
+}
+
+def downloadAppsBundleTask = tasks.register('downloadAppsBundle') {
+    def url = new URL('https://github.com/endlessm/kolibri-explore-plugin/releases/latest/download/apps-bundle.zip')
+    def dest = layout.buildDirectory.get()
+        .file("generated/${project.name}/apps-bundle.zip")
+        .asFile
+
+    inputs.property('url', "${url}")
+    inputs.property('etag', getUrlEtag(url))
+    outputs.file(dest)
+
+    doLast {
+        println 'Downloading apps-bundle.zip'
+        def conn = url.openConnection()
+        conn.instanceFollowRedirects = true
+        conn.connect()
+        def urlStream = conn.getInputStream()
+        def destStream = new FileOutputStream(dest)
+        urlStream.transferTo(destStream)
+        destStream.close()
+        urlStream.close()
+    }
+}
+
+def generateAppsBundleTask = tasks.register('generateAppsBundleAssets', Copy) {
+    from zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })
+    into commonAssetsDirectory
+}
+
 android {
     namespace "org.endlessos.testapp"
 
@@ -83,6 +122,7 @@ android {
         def welcomeScreenTask = createWelcomeScreenTask(variant)
         variant.mergeAssetsProvider.configure {
             dependsOn(welcomeScreenTask)
+            dependsOn(generateAppsBundleTask)
         }
     }
 }
