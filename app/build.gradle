@@ -1,4 +1,6 @@
 import com.android.build.gradle.api.ApplicationVariant
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 
 plugins {
     id 'com.android.application'
@@ -48,6 +50,33 @@ def downloadAppsBundleTask = tasks.register('downloadAppsBundle') {
 def generateAppsBundleTask = tasks.register('generateAppsBundleAssets', Copy) {
     from zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })
     into commonAssetsDirectory
+}
+
+String getLatestExplorePluginVersion() {
+    def url = new URL('https://pypi.org/simple/kolibri-explore-plugin/')
+    def conn = url.openConnection()
+    conn.instanceFollowRedirects = true
+    conn.setRequestProperty('Accept', 'application/vnd.pypi.simple.v1+json')
+    conn.connect()
+    def urlStream = conn.getInputStream()
+    def slurper = new JsonSlurper()
+    def details = slurper.parse(urlStream)
+    urlStream.close()
+    return details.versions.last()
+}
+
+def generateExploreVersionTask = tasks.register('generateExploreVersion') {
+    def version = getLatestExplorePluginVersion()
+    def dest = layout.buildDirectory.get()
+        .file("generated/${project.name}/explore-version.json")
+        .asFile
+
+    inputs.property('version', version)
+    outputs.file(dest)
+
+    doLast {
+        dest.text = JsonOutput.toJson([version: version])
+    }
 }
 
 android {
@@ -123,6 +152,18 @@ android {
         variant.mergeAssetsProvider.configure {
             dependsOn(welcomeScreenTask)
             dependsOn(generateAppsBundleTask)
+        }
+    }
+}
+
+project.afterEvaluate {
+    project.afterEvaluate {
+        project.android.applicationVariants.all { variant ->
+            def taskVariant = variant.name.capitalize()
+            def reqsTask = tasks.named("generate${taskVariant}PythonRequirements")
+            reqsTask.configure {
+                inputs.files(generateExploreVersionTask.map { it.outputs.files })
+            }
         }
     }
 }
