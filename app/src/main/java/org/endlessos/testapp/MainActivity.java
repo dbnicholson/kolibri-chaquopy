@@ -17,7 +17,7 @@ public class MainActivity extends Activity {
     private static final String TAG = Constants.TAG;
 
     private WebView view;
-    private KolibriService service;
+    private KolibriService kolibriService;
     private String serverUrl;
 
     @Override
@@ -44,25 +44,43 @@ public class MainActivity extends Activity {
 
         Intent intent = new Intent(this, KolibriService.class);
         Log.i(TAG, "Binding Kolibri service");
-        if (!bindService(intent, connection, Context.BIND_AUTO_CREATE)) {
+        if (!bindService(intent, kolibriConnection, Context.BIND_AUTO_CREATE)) {
             Log.e(TAG, "Could not bind to Kolibri service");
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Intent intent = new Intent(this, WorkerService.class);
+        Log.i(TAG, "Binding Worker service");
+        if (!bindService(intent, workerConnection, Context.BIND_AUTO_CREATE)) {
+            Log.e(TAG, "Could not bind to Worker service");
+        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.i(TAG, "Unbinding Worker service");
+        unbindService(workerConnection);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "Unbinding Kolibri service");
-        unbindService(connection);
+        unbindService(kolibriConnection);
     }
 
-    private ServiceConnection connection = new ServiceConnection() {
+    private ServiceConnection kolibriConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder ibinder) {
             Log.d(TAG, "Kolibri service connected");
             KolibriService.KolibriBinder binder = (KolibriService.KolibriBinder) ibinder;
-            service = binder.getService();
-            serverUrl = service.getServerUrl();
+            kolibriService = binder.getService();
+            serverUrl = kolibriService.getServerUrl();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -76,7 +94,19 @@ public class MainActivity extends Activity {
         public void onServiceDisconnected(ComponentName name) {
             Log.d(TAG, "Kolibri service disconnected");
             serverUrl = null;
-            service = null;
+            kolibriService = null;
+        }
+    };
+
+    private ServiceConnection workerConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder ibinder) {
+            Log.d(TAG, "Worker service connected");
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            Log.d(TAG, "Worker service disconnected");
         }
     };
 }
