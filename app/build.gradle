@@ -31,7 +31,7 @@ android {
                 pip false
             }
 
-            extractPackages "kolibri"
+            extractPackages "kolibri", "testapp"
         }
     }
 
