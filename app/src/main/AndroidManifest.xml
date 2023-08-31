@@ -20,7 +20,8 @@
                  android:exported="false" />
 
         <service android:name=".WorkerService"
-                 android:exported="false" />
+                 android:exported="false"
+                 android:process=":worker" />
     </application>
 
 </manifest>
