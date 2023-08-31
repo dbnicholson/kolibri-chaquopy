@@ -1,7 +1,5 @@
 package org.endlessos.testapp;
 
-import java.io.File;
-
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -31,10 +29,8 @@ public class WorkerService extends Service {
     @Override
     public void onCreate() {
         python = Python.getInstance();
-        PyObject mainModule = python.getModule("main");
 
-        File kolibriHome = new File(this.getFilesDir(), "kolibri");
-        mainModule.callAttr("setup", kolibriHome.toString());
+        KolibriUtils.setupKolibri(this);
 
         PyObject workerModule = python.getModule("worker");
         workerBus = workerModule.callAttr("WorkerProcessBus", this);
