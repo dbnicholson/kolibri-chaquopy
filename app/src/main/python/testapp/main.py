@@ -84,6 +84,9 @@ def get_logging_config(LOG_ROOT, debug=False, debug_database=False):
             },
         },
         "loggers": {
+            "testapp": {
+                "level": "DEBUG",
+            },
             # For now, we do not fetch debugging output from this
             # We should introduce custom debug log levels or log
             # targets, i.e. --debug-level=high
@@ -105,6 +108,10 @@ def get_logging_config(LOG_ROOT, debug=False, debug_database=False):
     }
 
 
+def get_empty_logging_config(*args, **kwargs):
+    return {"version": 1}
+
+
 def setup(kolibri_home):
     global kolibri_initialized
     if kolibri_initialized:
@@ -124,13 +131,13 @@ def setup(kolibri_home):
     os.environ['ANDROID_ARGUMENT'] = ''
 
     import kolibri.utils.logger
-    kolibri.utils.logger.get_default_logging_config = get_logging_config
+    kolibri.utils.logger.get_default_logging_config = get_empty_logging_config
 
     from kolibri.utils import env
     env.set_env()
 
     from kolibri.utils.main import initialize
-    initialize(debug=True)
+    initialize(debug=True, settings='testapp.settings')
 
     from kolibri.core.analytics.tasks import schedule_ping
     from kolibri.core.deviceadmin.tasks import schedule_vacuum
