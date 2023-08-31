@@ -3,6 +3,7 @@ import os
 
 from android.util import Log
 from logging.config import dictConfig
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 kolibri_initialized = False
@@ -125,10 +126,16 @@ def setup(kolibri_home):
 
     logger.info("Running Kolibri setup")
 
+    pkg_path = Path(__file__).parent.absolute()
+
     os.environ['KOLIBRI_HOME'] = kolibri_home
     os.environ['KOLIBRI_DEPLOYMENT_LISTEN_ADDRESS'] = '127.0.0.1'
     os.environ['KOLIBRI_RUN_MODE'] = 'test'
     os.environ['ANDROID_ARGUMENT'] = ''
+
+    autoprovision_path = pkg_path / 'automatic_provision.json'
+    if autoprovision_path.is_file():
+        os.environ['KOLIBRI_AUTOMATIC_PROVISION_FILE'] = str(autoprovision_path)
 
     import kolibri.utils.logger
     kolibri.utils.logger.get_default_logging_config = get_empty_logging_config
