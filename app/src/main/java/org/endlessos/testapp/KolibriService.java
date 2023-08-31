@@ -14,7 +14,7 @@ import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 
 public class KolibriService extends Service {
-    private static final String TAG = "KolibriService";
+    private static final String TAG = Constants.TAG;
 
     private final IBinder binder = new KolibriBinder();
     private Python python;

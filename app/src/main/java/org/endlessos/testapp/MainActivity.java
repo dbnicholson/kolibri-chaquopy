@@ -14,7 +14,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class MainActivity extends Activity {
-    private static final String TAG = "MainActivity";
+    private static final String TAG = Constants.TAG;
 
     private WebView view;
     private KolibriService service;

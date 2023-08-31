@@ -11,7 +11,7 @@ import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 
 public class WorkerService extends Service {
-    private static final String TAG = "WorkerService";
+    private static final String TAG = Constants.TAG;
 
     private final IBinder binder = new WorkerBinder();
     private Python python;
