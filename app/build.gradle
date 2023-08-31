@@ -47,9 +47,14 @@ def downloadAppsBundleTask = tasks.register('downloadAppsBundle') {
     }
 }
 
-def generateAppsBundleTask = tasks.register('generateAppsBundleAssets', Copy) {
-    from zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })
-    into commonAssetsDirectory
+def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
+    from(zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })) {
+        eachFile { fcd ->
+            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
+        }
+        includeEmptyDirs = false
+    }
+    into layout.projectDirectory.dir('src/main/python/testapp/apps')
 }
 
 String getLatestExplorePluginVersion() {
@@ -77,6 +82,13 @@ def generateExploreVersionTask = tasks.register('generateExploreVersion') {
     doLast {
         dest.text = JsonOutput.toJson([version: version])
     }
+}
+
+def cleanAppsBundleTask = tasks.register('cleanAppsBundle', Delete) {
+    delete layout.projectDirectory.dir('src/main/python/testapp/apps')
+}
+tasks.named('clean').configure {
+    dependsOn(cleanAppsBundleTask)
 }
 
 android {
@@ -151,13 +163,16 @@ android {
         def welcomeScreenTask = createWelcomeScreenTask(variant)
         variant.mergeAssetsProvider.configure {
             dependsOn(welcomeScreenTask)
-            dependsOn(generateAppsBundleTask)
         }
     }
 }
 
 project.afterEvaluate {
     project.afterEvaluate {
+        tasks.named('extractPythonBuildPackages').configure {
+            inputs.files(extractAppsBundleTask.map { it.outputs.files })
+        }
+
         project.android.applicationVariants.all { variant ->
             def taskVariant = variant.name.capitalize()
             def reqsTask = tasks.named("generate${taskVariant}PythonRequirements")
