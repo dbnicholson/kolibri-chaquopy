@@ -8,6 +8,14 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 kolibri_initialized = False
 
+DISABLED_PLUGINS = [
+    "kolibri.plugins.learn",
+]
+
+REQUIRED_PLUGINS = [
+    "kolibri.plugins.app",
+    "kolibri_explore_plugin",
+]
 
 class AndroidLogHandler(logging.Handler):
     """Logging handler dispatching to android.util.Log
@@ -137,11 +145,30 @@ def setup(kolibri_home):
     if autoprovision_path.is_file():
         os.environ['KOLIBRI_AUTOMATIC_PROVISION_FILE'] = str(autoprovision_path)
 
+    os.environ["KOLIBRI_APPS_BUNDLE_PATH"] = str(pkg_path / "apps")
+    os.environ["KOLIBRI_CONTENT_COLLECTIONS_PATH"] = str(pkg_path / "collections")
+
+    # Hardcoded for now
+    os.environ["KOLIBRI_INITIAL_CONTENT_PACK"] = "inventor"
+
     import kolibri.utils.logger
     kolibri.utils.logger.get_default_logging_config = get_empty_logging_config
 
     from kolibri.utils import env
     env.set_env()
+
+    from kolibri.main import enable_plugin
+    from kolibri.main import disable_plugin
+    from kolibri.plugins import config as plugins_config
+
+    for plugin_name in DISABLED_PLUGINS:
+        if plugin_name in plugins_config.ACTIVE_PLUGINS:
+            logger.info(f"Disabling plugin {plugin_name}")
+            disable_plugin(plugin_name)
+    for plugin_name in REQUIRED_PLUGINS:
+        if plugin_name not in plugins_config.ACTIVE_PLUGINS:
+            logger.info(f"Enabling plugin {plugin_name}")
+            enable_plugin(plugin_name)
 
     from kolibri.utils.main import initialize
     initialize(debug=True, settings='testapp.settings')
