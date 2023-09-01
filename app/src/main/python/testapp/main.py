@@ -1,5 +1,7 @@
+import importlib
 import logging
 import os
+import zipfile
 
 from android.util import Log
 from logging.config import dictConfig
@@ -178,5 +180,7 @@ def setup(kolibri_home):
 
     schedule_ping()
     schedule_vacuum()
+
+    importlib.reload(zipfile)
 
     kolibri_initialized = True
