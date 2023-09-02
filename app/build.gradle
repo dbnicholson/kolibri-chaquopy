@@ -230,7 +230,7 @@ TaskProvider createWelcomeScreenTask(ApplicationVariant variant) {
     def dstDir = variantAssetsDirectory(variant).dir('welcomeScreen')
     return tasks.register("generate${taskVariant}WelcomeScreenAssets", Sync) {
         def reqsTask = tasks.named("generate${taskVariant}PythonRequirements").get()
-        def srcDir = new File(reqsTask.ext.destinationDir, 'common/kolibri_explore_plugin/welcomeScreen')
+        def srcDir = new File(reqsTask.outputFiles.dir, 'common/kolibri_explore_plugin/welcomeScreen')
         from srcDir
         into dstDir
         dependsOn(reqsTask)
