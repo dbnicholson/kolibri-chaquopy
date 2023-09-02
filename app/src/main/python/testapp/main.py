@@ -143,6 +143,11 @@ def setup(kolibri_home):
     os.environ['KOLIBRI_RUN_MODE'] = 'test'
     os.environ['ANDROID_ARGUMENT'] = ''
 
+    # Turn down the number of threads so the app doesn't become unresponsive.
+    os.environ["KOLIBRI_CHERRYPY_THREAD_POOL"] = "2"
+    os.environ["KOLIBRI_REGULAR_PRIORITY_WORKERS"] = "2"
+    os.environ["KOLIBRI_HIGH_PRIORITY_WORKERS"] = "2"
+
     autoprovision_path = pkg_path / 'automatic_provision.json'
     if autoprovision_path.is_file():
         os.environ['KOLIBRI_AUTOMATIC_PROVISION_FILE'] = str(autoprovision_path)
