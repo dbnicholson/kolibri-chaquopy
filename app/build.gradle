@@ -145,7 +145,7 @@ android {
             version "3.9"
 
             pip {
-                install "https://github.com/learningequality/kolibri/releases/download/v0.16.0-beta0/kolibri-0.16.0b0-py2.py3-none-any.whl"
+                install "https://github.com/learningequality/kolibri/releases/download/v0.16.0-beta5/kolibri-0.16.0b5-py2.py3-none-any.whl"
                 install "kolibri-explore-plugin"
             }
 
