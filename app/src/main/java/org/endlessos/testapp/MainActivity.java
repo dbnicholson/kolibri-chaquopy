@@ -18,7 +18,6 @@ public class MainActivity extends Activity {
 
     private WebView view;
     private KolibriService kolibriService;
-    private boolean workerStarted;
     private String serverUrl;
 
     @Override
@@ -44,30 +43,6 @@ public class MainActivity extends Activity {
         view.loadUrl("file:///android_asset/_load.html");
         setContentView(view);
 
-        startKolibri();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        if (kolibriService != null) {
-            startWorker();
-        }
-    }
-
-    @Override
-    protected void onStop() {
-        super.onStop();
-        stopWorker();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopKolibri();
-    }
-
-    private void startKolibri() {
         Intent intent = new Intent(this, KolibriService.class);
         Log.i(TAG, "Binding Kolibri service");
         if (!bindService(intent, kolibriConnection, Context.BIND_AUTO_CREATE)) {
@@ -75,12 +50,10 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void stopKolibri() {
-        Log.i(TAG, "Unbinding Kolibri service");
-        unbindService(kolibriConnection);
-    }
+    @Override
+    protected void onStart() {
+        super.onStart();
 
-    private void startWorker() {
         Intent intent = new Intent(this, WorkerService.class);
         Log.i(TAG, "Binding Worker service");
         if (!bindService(intent, workerConnection, Context.BIND_AUTO_CREATE)) {
@@ -88,9 +61,18 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void stopWorker() {
+    @Override
+    protected void onStop() {
+        super.onStop();
         Log.i(TAG, "Unbinding Worker service");
         unbindService(workerConnection);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.i(TAG, "Unbinding Kolibri service");
+        unbindService(kolibriConnection);
     }
 
     private ServiceConnection kolibriConnection = new ServiceConnection() {
@@ -107,10 +89,6 @@ public class MainActivity extends Activity {
                     view.loadUrl(serverUrl);
                 }
             });
-
-            if (!workerStarted) {
-                startWorker();
-            }
         }
 
         @Override
@@ -125,13 +103,11 @@ public class MainActivity extends Activity {
         @Override
         public void onServiceConnected(ComponentName name, IBinder ibinder) {
             Log.d(TAG, "Worker service connected");
-            workerStarted = true;
         }
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
             Log.d(TAG, "Worker service disconnected");
-            workerStarted = false;
         }
     };
 }
