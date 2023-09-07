@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
                  return false;
              }
         });
-        view.loadUrl("file:///android_asset/welcomeScreen/index.html");
+        view.loadUrl("file:///android_asset/_load.html");
         setContentView(view);
 
         startKolibri();
