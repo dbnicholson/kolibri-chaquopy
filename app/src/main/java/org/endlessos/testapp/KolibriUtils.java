@@ -1,6 +1,11 @@
 package org.endlessos.testapp;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 import android.content.Context;
 import android.util.Log;
@@ -16,16 +21,29 @@ public class KolibriUtils {
         return new File(context.getFilesDir(), "kolibri");
     }
 
-    public static void setupKolibri(Context context) {
+    public static Path getSetupLockPath(Context context) {
+        return new File(context.getFilesDir(), "setup.lock").toPath();
+    }
+
+    public static synchronized void setupKolibri(Context context) throws IOException {
         if (kolibriInitialized) {
             Log.d(TAG, "Skipping Kolibri setup");
         }
 
-        final String kolibriHome = getKolibriHome(context).toString();
-        Python python = Python.getInstance();
-        PyObject mainModule = python.getModule("testapp.main");
-        Log.i(TAG, "Setting up Kolibri in " + kolibriHome);
-        mainModule.callAttr("setup", kolibriHome);
-        kolibriInitialized = true;
+        final Path lockPath = getSetupLockPath(context);
+        Log.i(TAG, "Acquiring Kolibri setup lock " + lockPath.toString());
+        try (
+            FileChannel lockChannel = FileChannel.open(lockPath,
+                                                       StandardOpenOption.WRITE,
+                                                       StandardOpenOption.CREATE);
+            FileLock lock = lockChannel.lock();
+        ) {
+            final String kolibriHome = getKolibriHome(context).toString();
+            Python python = Python.getInstance();
+            PyObject mainModule = python.getModule("testapp.main");
+            Log.i(TAG, "Setting up Kolibri in " + kolibriHome);
+            mainModule.callAttr("setup", kolibriHome);
+            kolibriInitialized = true;
+        }
     }
 }

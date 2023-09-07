@@ -1,5 +1,7 @@
 package org.endlessos.testapp;
 
+import java.io.IOException;
+
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
@@ -30,7 +32,12 @@ public class WorkerService extends Service {
     public void onCreate() {
         python = Python.getInstance();
 
-        KolibriUtils.setupKolibri(this);
+        try {
+            KolibriUtils.setupKolibri(this);
+        } catch (IOException e) {
+            Log.e(TAG, "Failed to setup Kolibri: " + e.toString());
+            return;
+        }
 
         PyObject workerModule = python.getModule("testapp.worker");
         workerBus = workerModule.callAttr("WorkerProcessBus", this);

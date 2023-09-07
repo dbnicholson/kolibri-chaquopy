@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Log.i(TAG, "Creating activity");
+        Log.d(TAG, "Creating activity");
 
         view = new WebView(this);
         WebSettings viewSettings = view.getSettings();
@@ -53,6 +53,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "Starting activity");
 
         Intent intent = new Intent(this, WorkerService.class);
         Log.i(TAG, "Binding Worker service");
@@ -64,6 +65,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
+        Log.d(TAG, "Stopping activity");
         Log.i(TAG, "Unbinding Worker service");
         unbindService(workerConnection);
     }
@@ -71,6 +73,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        Log.d(TAG, "Destroying activity");
         Log.i(TAG, "Unbinding Kolibri service");
         unbindService(kolibriConnection);
     }
