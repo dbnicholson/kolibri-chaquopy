@@ -1,5 +1,6 @@
 package org.endlessos.testapp;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
@@ -21,6 +22,7 @@ public class MainActivity extends Activity {
     private String serverUrl;
 
     @Override
+    @SuppressLint("SetJavaScriptEnabled")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
