@@ -7,7 +7,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
@@ -17,8 +22,12 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
     private static final String TAG = Constants.TAG;
 
+    static final int MSG_SET_SERVER_URL = 1;
+
     private WebView view;
-    private KolibriService kolibriService;
+    private Messenger messenger = new Messenger(new ActivityHandler(Looper.getMainLooper()));
+
+    private Messenger kolibriService;
     private String serverUrl;
 
     @Override
@@ -80,20 +89,55 @@ public class MainActivity extends Activity {
         unbindService(kolibriConnection);
     }
 
+    public class ActivityHandler extends Handler {
+        public ActivityHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_SET_SERVER_URL:
+                    Bundle data = msg.getData();
+                    if (data == null) {
+                        Log.w(TAG, "Received reply with no data");
+                        break;
+                    }
+                    serverUrl = data.getString("serverUrl");
+                    if (serverUrl == null) {
+                        Log.w(TAG, "Received null server URL");
+                        break;
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Log.i(TAG, "Loading URL " + serverUrl);
+                            view.loadUrl(serverUrl);
+                        }
+                    });
+                    break;
+                default:
+                    super.handleMessage(msg);
+            }
+        }
+    }
+
     private ServiceConnection kolibriConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder ibinder) {
             Log.d(TAG, "Kolibri service connected");
-            KolibriService.KolibriBinder binder = (KolibriService.KolibriBinder) ibinder;
-            kolibriService = binder.getService();
-            serverUrl = kolibriService.getServerUrl();
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.i(TAG, "Loading URL " + serverUrl);
-                    view.loadUrl(serverUrl);
-                }
-            });
+            kolibriService = new Messenger(ibinder);
+            Message msg = Message.obtain(null,
+                                         KolibriService.MSG_GET_SERVER_URL,
+                                         MainActivity.MSG_SET_SERVER_URL,
+                                         0);
+            msg.replyTo = messenger;
+            try {
+                kolibriService.send(msg);
+            } catch (RemoteException e) {
+                Log.e(TAG, "Failed to send message: " + e.toString());
+            }
         }
 
         @Override

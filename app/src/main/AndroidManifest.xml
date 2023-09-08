@@ -19,7 +19,8 @@
         </activity>
 
         <service android:name=".KolibriService"
-                 android:exported="false" />
+                 android:exported="false"
+                 android:process=":kolibri" />
 
         <service android:name=".WorkerService"
                  android:exported="false"
