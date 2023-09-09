@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
                  return false;
              }
         });
-        view.loadUrl("file:///android_asset/_load.html");
+        view.loadUrl("file:///android_asset/welcomeScreen/index.html");
         setContentView(view);
 
         Intent intent = new Intent(this, KolibriService.class);
