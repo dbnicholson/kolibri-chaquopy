@@ -15,8 +15,8 @@ Directory variantAssetsDirectory(ApplicationVariant variant) {
 }
 
 def downloadAppsBundleTask = tasks.register('downloadAppsBundle', Download) {
-    src 'https://github.com/endlessm/kolibri-explore-plugin/releases/latest/download/apps-bundle.zip'
-    dest layout.buildDirectory.file("generated/${project.name}/apps-bundle.zip")
+    src "https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/apps-bundle.zip"
+    dest layout.buildDirectory.file("download/${project.name}/apps-bundle.zip")
     onlyIfModified true
     useETag true
 }
@@ -32,20 +32,14 @@ def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
 }
 
 def downloadCollectionsTask = tasks.register('downloadCollections', Download) {
-    src 'https://github.com/endlessm/endless-key-collections/archive/refs/heads/main.zip'
-    dest layout.buildDirectory.file("generated/${project.name}/collections.zip")
+    src "https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip"
+    dest layout.buildDirectory.file("download/${project.name}/collections.zip")
     onlyIfModified true
-    useETag 'all'
+    useETag true
 }
 
 def extractCollectionsTask = tasks.register('extractCollections', Copy) {
-    from(zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile })) {
-        include "endless-key-collections-main/json/**"
-        eachFile { fcd ->
-            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(2))
-        }
-        includeEmptyDirs = false
-    }
+    from zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile })
     into layout.projectDirectory.dir('src/main/python/testapp/collections')
 }
 
