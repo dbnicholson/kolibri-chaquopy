@@ -5,6 +5,7 @@ import groovy.json.JsonSlurper
 plugins {
     id 'com.android.application'
     id 'com.chaquo.python'
+    id 'de.undercouch.download'
 }
 
 Directory commonAssetsDirectory = layout.buildDirectory.get().dir("generated/${name}/assets/common")
@@ -13,42 +14,11 @@ Directory variantAssetsDirectory(ApplicationVariant variant) {
     return layout.buildDirectory.get().dir("generated/${name}/assets/${variant.dirName}")
 }
 
-String getUrlEtag(URL url) {
-    def conn = url.openConnection()
-    conn.method = 'HEAD'
-    conn.instanceFollowRedirects = true
-    conn.connect()
-    if (conn.responseCode != 200) {
-        throw new Exception("Retrieving ${url} failed: ${conn.responseCode} ${conn.responseMessage}")
-    }
-    return conn.getHeaderField("ETag")
-}
-
-def downloadUrl(URL url, File dest) {
-    def conn = url.openConnection()
-    conn.instanceFollowRedirects = true
-    conn.connect()
-    def urlStream = conn.getInputStream()
-    def destStream = new FileOutputStream(dest)
-    urlStream.transferTo(destStream)
-    destStream.close()
-    urlStream.close()
-}
-
-def downloadAppsBundleTask = tasks.register('downloadAppsBundle') {
-    def url = new URL('https://github.com/endlessm/kolibri-explore-plugin/releases/latest/download/apps-bundle.zip')
-    def dest = layout.buildDirectory.get()
-        .file("generated/${project.name}/apps-bundle.zip")
-        .asFile
-
-    inputs.property('url', "${url}")
-    inputs.property('etag', getUrlEtag(url))
-    outputs.file(dest)
-
-    doLast {
-        println 'Downloading apps-bundle.zip'
-        downloadUrl(url, dest)
-    }
+def downloadAppsBundleTask = tasks.register('downloadAppsBundle', Download) {
+    src 'https://github.com/endlessm/kolibri-explore-plugin/releases/latest/download/apps-bundle.zip'
+    dest layout.buildDirectory.file("generated/${project.name}/apps-bundle.zip")
+    onlyIfModified true
+    useETag true
 }
 
 def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
@@ -61,18 +31,11 @@ def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
     into layout.projectDirectory.dir('src/main/python/testapp/apps')
 }
 
-def downloadCollectionsTask = tasks.register('downloadCollections') {
-    def url = new URL('https://github.com/endlessm/endless-key-collections/archive/refs/heads/main.zip')
-    def dest = layout.buildDirectory.file("generated/${project.name}/collections.zip")
-
-    inputs.property('url', "${url}")
-    inputs.property('etag', getUrlEtag(url))
-    outputs.file(dest)
-
-    doLast {
-        println 'Downloading collections.zip'
-        downloadUrl(url, dest.get().asFile)
-    }
+def downloadCollectionsTask = tasks.register('downloadCollections', Download) {
+    src 'https://github.com/endlessm/endless-key-collections/archive/refs/heads/main.zip'
+    dest layout.buildDirectory.file("generated/${project.name}/collections.zip")
+    onlyIfModified true
+    useETag 'all'
 }
 
 def extractCollectionsTask = tasks.register('extractCollections', Copy) {
