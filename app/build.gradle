@@ -14,46 +14,6 @@ Directory variantAssetsDirectory(ApplicationVariant variant) {
     return layout.buildDirectory.get().dir("generated/${name}/assets/${variant.dirName}")
 }
 
-def downloadAppsBundleTask = tasks.register('downloadAppsBundle', Download) {
-    src "https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/apps-bundle.zip"
-    dest layout.buildDirectory.file("download/${project.name}/apps-bundle.zip")
-    onlyIfModified true
-    useETag true
-}
-
-def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
-    from(zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })) {
-        eachFile { fcd ->
-            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
-        }
-        includeEmptyDirs = false
-    }
-    into layout.projectDirectory.dir('src/main/python/testapp/apps')
-}
-
-def downloadCollectionsTask = tasks.register('downloadCollections', Download) {
-    src "https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip"
-    dest layout.buildDirectory.file("download/${project.name}/collections.zip")
-    onlyIfModified true
-    useETag true
-}
-
-def extractCollectionsTask = tasks.register('extractCollections', Copy) {
-    from zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile })
-    into layout.projectDirectory.dir('src/main/python/testapp/collections')
-}
-
-def cleanAppsBundleTask = tasks.register('cleanAppsBundle', Delete) {
-    delete layout.projectDirectory.dir('src/main/python/testapp/apps')
-}
-def cleanCollectionsTask = tasks.register('cleanCollections', Delete) {
-    delete layout.projectDirectory.dir('src/main/python/testapp/collections')
-}
-tasks.named('clean').configure {
-    dependsOn(cleanAppsBundleTask)
-    dependsOn(cleanCollectionsTask)
-}
-
 android {
     namespace "org.endlessos.testapp"
 
@@ -130,15 +90,6 @@ android {
     }
 }
 
-project.afterEvaluate {
-    project.afterEvaluate {
-        tasks.named('extractPythonBuildPackages').configure {
-            inputs.files(extractAppsBundleTask.map { it.outputs.files })
-            inputs.files(extractCollectionsTask.map { it.outputs.files })
-        }
-    }
-}
-
 dependencies {
     testImplementation 'junit:junit:4.+'
     androidTestImplementation 'androidx.test:core:1.5.0'
@@ -149,6 +100,56 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
     options.deprecation = true
+}
+
+def downloadAppsBundleTask = tasks.register('downloadAppsBundle', Download) {
+    src "https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/apps-bundle.zip"
+    dest layout.buildDirectory.file("download/${project.name}/apps-bundle.zip")
+    onlyIfModified true
+    useETag true
+}
+
+def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
+    from(zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })) {
+        eachFile { fcd ->
+            fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
+        }
+        includeEmptyDirs = false
+    }
+    into layout.projectDirectory.dir('src/main/python/testapp/apps')
+}
+
+def downloadCollectionsTask = tasks.register('downloadCollections', Download) {
+    src "https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip"
+    dest layout.buildDirectory.file("download/${project.name}/collections.zip")
+    onlyIfModified true
+    useETag true
+}
+
+def extractCollectionsTask = tasks.register('extractCollections', Copy) {
+    from zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile })
+    into layout.projectDirectory.dir('src/main/python/testapp/collections')
+}
+
+def cleanAppsBundleTask = tasks.register('cleanAppsBundle', Delete) {
+    delete layout.projectDirectory.dir('src/main/python/testapp/apps')
+}
+def cleanCollectionsTask = tasks.register('cleanCollections', Delete) {
+    delete layout.projectDirectory.dir('src/main/python/testapp/collections')
+}
+
+project.afterEvaluate {
+    project.afterEvaluate {
+        tasks.named('extractPythonBuildPackages').configure {
+            inputs.files(extractAppsBundleTask.map { it.outputs.files })
+            inputs.files(extractCollectionsTask.map { it.outputs.files })
+        }
+    }
+}
+
+tasks.named('clean').configure {
+    dependsOn(cleanAppsBundleTask)
+    dependsOn(cleanCollectionsTask)
 }
 
 TaskProvider createWelcomeScreenTask(ApplicationVariant variant) {
