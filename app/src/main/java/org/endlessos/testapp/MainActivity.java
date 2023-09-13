@@ -25,11 +25,14 @@ public class MainActivity extends Activity {
 
     static final int MSG_SET_SERVER_URL = 1;
 
+    static final String STATE_LAST_URL_PATH = "lastUrlPath";
+
     private WebView view;
     private Messenger messenger = new Messenger(new ActivityHandler(Looper.getMainLooper()));
 
     private Messenger kolibriService;
     private Uri serverUrl;
+    private String lastUrlPath = "/";
 
     @Override
     @SuppressLint("SetJavaScriptEnabled")
@@ -37,6 +40,11 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG, "Creating activity");
+
+        if (savedInstanceState != null) {
+            lastUrlPath = savedInstanceState.getString(STATE_LAST_URL_PATH, "/");
+            Log.d(TAG, "Restored last URL path " + lastUrlPath);
+        }
 
         view = new WebView(this);
         WebSettings viewSettings = view.getSettings();
@@ -54,12 +62,6 @@ public class MainActivity extends Activity {
         });
         setContentView(view);
         view.loadUrl("file:///android_asset/welcomeScreen/index.html");
-
-        Intent intent = new Intent(this, KolibriService.class);
-        Log.i(TAG, "Binding Kolibri service");
-        if (!bindService(intent, kolibriConnection, Context.BIND_AUTO_CREATE)) {
-            Log.e(TAG, "Could not bind to Kolibri service");
-        }
     }
 
     @Override
@@ -67,9 +69,15 @@ public class MainActivity extends Activity {
         super.onStart();
         Log.d(TAG, "Starting activity");
 
-        Intent intent = new Intent(this, WorkerService.class);
+        Intent kolibriIntent = new Intent(this, KolibriService.class);
+        Log.i(TAG, "Binding Kolibri service");
+        if (!bindService(kolibriIntent, kolibriConnection, Context.BIND_AUTO_CREATE)) {
+            Log.e(TAG, "Could not bind to Kolibri service");
+        }
+
+        Intent workerIntent = new Intent(this, WorkerService.class);
         Log.i(TAG, "Binding Worker service");
-        if (!bindService(intent, workerConnection, Context.BIND_AUTO_CREATE)) {
+        if (!bindService(workerIntent, workerConnection, Context.BIND_AUTO_CREATE)) {
             Log.e(TAG, "Could not bind to Worker service");
         }
     }
@@ -78,6 +86,10 @@ public class MainActivity extends Activity {
     protected void onStop() {
         super.onStop();
         Log.d(TAG, "Stopping activity");
+        saveLastUrl();
+        view.loadUrl("about:blank");
+        Log.i(TAG, "Unbinding Kolibri service");
+        unbindService(kolibriConnection);
         Log.i(TAG, "Unbinding Worker service");
         unbindService(workerConnection);
     }
@@ -86,8 +98,13 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "Destroying activity");
-        Log.i(TAG, "Unbinding Kolibri service");
-        unbindService(kolibriConnection);
+    }
+
+    @Override
+    protected void onSaveInstanceState (Bundle outState) {
+        Log.d(TAG, "Saving activity state");
+        outState.putString(STATE_LAST_URL_PATH, lastUrlPath);
+        super.onSaveInstanceState(outState);
     }
 
     public class ActivityHandler extends Handler {
@@ -111,13 +128,7 @@ public class MainActivity extends Activity {
                     }
                     serverUrl = Uri.parse(url);
 
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Log.i(TAG, "Loading URL " + serverUrl);
-                            view.loadUrl(serverUrl.toString());
-                        }
-                    });
+                    loadLastUrl();
                     break;
                 default:
                     super.handleMessage(msg);
@@ -161,4 +172,34 @@ public class MainActivity extends Activity {
             Log.d(TAG, "Worker service disconnected");
         }
     };
+
+    private void saveLastUrl() {
+        final String viewUrl = view.getUrl();
+        if (viewUrl == null) {
+            return;
+        }
+        final Uri url = Uri.parse(viewUrl);
+        final String path = url.getPath();
+        if (path == null) {
+            Log.w(TAG, "Could not determine path in URL " + url);
+            return;
+        }
+        final String fragment = url.getFragment();
+        lastUrlPath = path + (fragment != null ? "#" + fragment : "");
+        Log.i(TAG, "Set last URL path to " + lastUrlPath);
+    }
+
+    private void loadLastUrl() {
+        final String url = String.format("%s://%s%s",
+                                         serverUrl.getScheme(),
+                                         serverUrl.getAuthority(),
+                                         lastUrlPath);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Log.i(TAG, "Loading URL " + url);
+                view.loadUrl(url);
+            }
+        });
+    }
 }
