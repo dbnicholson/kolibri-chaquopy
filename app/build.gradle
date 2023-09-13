@@ -8,11 +8,7 @@ plugins {
     id 'de.undercouch.download'
 }
 
-Directory commonAssetsDirectory = layout.buildDirectory.get().dir("generated/${name}/assets/common")
-
-Directory variantAssetsDirectory(ApplicationVariant variant) {
-    return layout.buildDirectory.get().dir("generated/${name}/assets/${variant.dirName}")
-}
+Directory commonAssetsDirectory = layout.buildDirectory.get().dir("generated/${project.name}/assets/common")
 
 android {
     namespace "org.endlessos.testapp"
@@ -74,18 +70,8 @@ android {
 
     sourceSets {
         main {
-            // Add common and per variant generated assets directories
+            // Add common generated assets directory
             assets.srcDir(commonAssetsDirectory)
-            applicationVariants.all { variant ->
-                assets.srcDir(variantAssetsDirectory(variant))
-            }
-        }
-    }
-
-    applicationVariants.all { variant ->
-        def welcomeScreenTask = createWelcomeScreenTask(variant)
-        variant.mergeAssetsProvider.configure {
-            dependsOn(welcomeScreenTask)
         }
     }
 }
@@ -119,6 +105,18 @@ def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
     into layout.projectDirectory.dir('src/main/python/testapp/apps')
 }
 
+def downloadWelcomeScreenTask = tasks.register('downloadWelcomeScreen', Download) {
+    src "https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/welcome-screen.zip"
+    dest layout.buildDirectory.file("download/${project.name}/welcome-screen.zip")
+    onlyIfModified true
+    useETag true
+}
+
+def extractWelcomeScreenTask = tasks.register('extractWelcomeScreen', Copy) {
+    from zipTree(downloadWelcomeScreenTask.map { it.outputs.files.singleFile })
+    into commonAssetsDirectory.dir("welcomeScreen")
+}
+
 def downloadCollectionsTask = tasks.register('downloadCollections', Download) {
     src "https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip"
     dest layout.buildDirectory.file("download/${project.name}/collections.zip")
@@ -147,19 +145,13 @@ project.afterEvaluate {
     }
 }
 
+android.applicationVariants.all { variant ->
+    variant.mergeAssetsProvider.configure {
+        inputs.files(extractWelcomeScreenTask.map { it.outputs.files })
+    }
+}
+
 tasks.named('clean').configure {
     dependsOn(cleanAppsBundleTask)
     dependsOn(cleanCollectionsTask)
-}
-
-TaskProvider createWelcomeScreenTask(ApplicationVariant variant) {
-    def taskVariant = variant.name.capitalize()
-    def dstDir = variantAssetsDirectory(variant).dir('welcomeScreen')
-    return tasks.register("generate${taskVariant}WelcomeScreenAssets", Sync) {
-        def reqsTask = tasks.named("generate${taskVariant}PythonRequirements").get()
-        def srcDir = new File(reqsTask.outputFiles.dir, 'common/kolibri_explore_plugin/welcomeScreen')
-        from srcDir
-        into dstDir
-        dependsOn(reqsTask)
-    }
 }
