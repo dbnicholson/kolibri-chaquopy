@@ -6,6 +6,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -28,7 +29,7 @@ public class MainActivity extends Activity {
     private Messenger messenger = new Messenger(new ActivityHandler(Looper.getMainLooper()));
 
     private Messenger kolibriService;
-    private String serverUrl;
+    private Uri serverUrl;
 
     @Override
     @SuppressLint("SetJavaScriptEnabled")
@@ -103,17 +104,18 @@ public class MainActivity extends Activity {
                         Log.w(TAG, "Received reply with no data");
                         break;
                     }
-                    serverUrl = data.getString("serverUrl");
-                    if (serverUrl == null) {
+                    String url = data.getString("serverUrl");
+                    if (url == null) {
                         Log.w(TAG, "Received null server URL");
                         break;
                     }
+                    serverUrl = Uri.parse(url);
 
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             Log.i(TAG, "Loading URL " + serverUrl);
-                            view.loadUrl(serverUrl);
+                            view.loadUrl(serverUrl.toString());
                         }
                     });
                     break;
