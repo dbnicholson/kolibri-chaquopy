@@ -3,7 +3,7 @@ pluginManagement {
         // Forked repo with unreleased chaquopy
         // FIXME: Remove this when 15.0.1 is released and published
         maven {
-            url uri("https://dbnicholson.github.io/chaquopy/")
+            url = uri("https://dbnicholson.github.io/chaquopy/")
         }
         gradlePluginPortal()
         google()
@@ -17,5 +17,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = 'Chaquopy Intermission Week Test'
-include ':app'
+rootProject.name = "Chaquopy Intermission Week Test"
+include(":app")

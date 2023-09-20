@@ -3,54 +3,54 @@ import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
 plugins {
-    id 'com.android.application'
-    id 'com.chaquo.python'
-    id 'de.undercouch.download'
+    id("com.android.application")
+    id("com.chaquo.python")
+    id("de.undercouch.download")
 }
 
 Directory commonAssetsDirectory = layout.buildDirectory.get().dir("generated/${project.name}/assets/common")
 
 android {
-    namespace "org.endlessos.testapp"
+    namespace = "org.endlessos.testapp"
 
-    compileSdkVersion 31
+    compileSdkVersion(31)
 
     defaultConfig {
-        applicationId "org.endlessos.testapp"
-        minSdkVersion 26
-        targetSdkVersion 31
-        versionCode 1
-        versionName "1.0"
+        applicationId = "org.endlessos.testapp"
+        minSdkVersion = 26
+        targetSdkVersion = 31
+        versionCode = 1
+        versionName = "1.0"
 
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         ndk {
-            abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+            abiFilters("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
         python {
-            version "3.9"
+            version = "3.9"
 
             pip {
-                install "https://github.com/learningequality/kolibri/releases/download/v0.16.0-beta5/kolibri-0.16.0b5-py2.py3-none-any.whl"
-                install "kolibri-explore-plugin==${exploreVersion}"
+                install("https://github.com/learningequality/kolibri/releases/download/v0.16.0-beta5/kolibri-0.16.0b5-py2.py3-none-any.whl")
+                install("kolibri-explore-plugin==${exploreVersion}")
             }
 
             pyc {
-                pip false
+                pip = false
             }
 
-            extractPackages "kolibri", "testapp", "kolibri_explore_plugin"
+            extractPackages("kolibri", "testapp", "kolibri_explore_plugin")
         }
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled = false
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
 
     testOptions {
@@ -77,68 +77,68 @@ android {
 }
 
 dependencies {
-    testImplementation 'junit:junit:4.+'
-    androidTestImplementation 'androidx.test:core:1.5.0'
-    androidTestImplementation 'androidx.test:runner:1.5.2'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
-    androidTestImplementation 'androidx.core:core-ktx:1.3.2'
+    testImplementation("junit:junit:4.+")
+    androidTestImplementation("androidx.test:core:1.5.0")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test:rules:1.5.0")
+    androidTestImplementation("androidx.core:core-ktx:1.3.2")
 }
 
 tasks.withType(JavaCompile).configureEach {
     options.deprecation = true
 }
 
-def downloadAppsBundleTask = tasks.register('downloadAppsBundle', Download) {
-    src "https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/apps-bundle.zip"
-    dest layout.buildDirectory.file("download/${project.name}/apps-bundle.zip")
-    onlyIfModified true
-    useETag true
+def downloadAppsBundleTask = tasks.register("downloadAppsBundle", Download) {
+    src("https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/apps-bundle.zip")
+    dest(layout.buildDirectory.file("download/${project.name}/apps-bundle.zip"))
+    onlyIfModified(true)
+    useETag(true)
 }
 
-def extractAppsBundleTask = tasks.register('extractAppsBundle', Copy) {
+def extractAppsBundleTask = tasks.register("extractAppsBundle", Copy) {
     from(zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })) {
         eachFile { fcd ->
             fcd.relativePath = new RelativePath(true, fcd.relativePath.segments.drop(1))
         }
         includeEmptyDirs = false
     }
-    into layout.projectDirectory.dir('src/main/python/testapp/apps')
+    into(layout.projectDirectory.dir("src/main/python/testapp/apps"))
 }
 
-def downloadWelcomeScreenTask = tasks.register('downloadWelcomeScreen', Download) {
-    src "https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/welcome-screen.zip"
-    dest layout.buildDirectory.file("download/${project.name}/welcome-screen.zip")
-    onlyIfModified true
-    useETag true
+def downloadWelcomeScreenTask = tasks.register("downloadWelcomeScreen", Download) {
+    src("https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/welcome-screen.zip")
+    dest(layout.buildDirectory.file("download/${project.name}/welcome-screen.zip"))
+    onlyIfModified(true)
+    useETag(true)
 }
 
-def extractWelcomeScreenTask = tasks.register('extractWelcomeScreen', Copy) {
-    from zipTree(downloadWelcomeScreenTask.map { it.outputs.files.singleFile })
-    into commonAssetsDirectory.dir("welcomeScreen")
+def extractWelcomeScreenTask = tasks.register("extractWelcomeScreen", Copy) {
+    from(zipTree(downloadWelcomeScreenTask.map { it.outputs.files.singleFile }))
+    into(commonAssetsDirectory.dir("welcomeScreen"))
 }
 
-def downloadCollectionsTask = tasks.register('downloadCollections', Download) {
-    src "https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip"
-    dest layout.buildDirectory.file("download/${project.name}/collections.zip")
-    onlyIfModified true
-    useETag true
+def downloadCollectionsTask = tasks.register("downloadCollections", Download) {
+    src("https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip")
+    dest(layout.buildDirectory.file("download/${project.name}/collections.zip"))
+    onlyIfModified(true)
+    useETag(true)
 }
 
-def extractCollectionsTask = tasks.register('extractCollections', Copy) {
-    from zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile })
-    into layout.projectDirectory.dir('src/main/python/testapp/collections')
+def extractCollectionsTask = tasks.register("extractCollections", Copy) {
+    from(zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile }))
+    into(layout.projectDirectory.dir("src/main/python/testapp/collections"))
 }
 
-def cleanAppsBundleTask = tasks.register('cleanAppsBundle', Delete) {
-    delete layout.projectDirectory.dir('src/main/python/testapp/apps')
+def cleanAppsBundleTask = tasks.register("cleanAppsBundle", Delete) {
+    delete(layout.projectDirectory.dir("src/main/python/testapp/apps"))
 }
-def cleanCollectionsTask = tasks.register('cleanCollections', Delete) {
-    delete layout.projectDirectory.dir('src/main/python/testapp/collections')
+def cleanCollectionsTask = tasks.register("cleanCollections", Delete) {
+    delete(layout.projectDirectory.dir("src/main/python/testapp/collections"))
 }
 
 project.afterEvaluate {
     project.afterEvaluate {
-        tasks.named('extractPythonBuildPackages').configure {
+        tasks.named("extractPythonBuildPackages").configure {
             inputs.files(extractAppsBundleTask.map { it.outputs.files })
             inputs.files(extractCollectionsTask.map { it.outputs.files })
         }
@@ -151,7 +151,7 @@ android.applicationVariants.all { variant ->
     }
 }
 
-tasks.named('clean').configure {
+tasks.named("clean").configure {
     dependsOn(cleanAppsBundleTask)
     dependsOn(cleanCollectionsTask)
 }
