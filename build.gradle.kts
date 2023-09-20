@@ -7,6 +7,6 @@ plugins {
     id("de.undercouch.download") version "5.5.0" apply false
 }
 
-task clean(type: Delete) {
+tasks.register<Delete>("clean") {
     delete(rootProject.buildDir)
 }
