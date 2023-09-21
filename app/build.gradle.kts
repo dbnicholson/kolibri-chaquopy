@@ -73,14 +73,10 @@ chaquopy {
             install("kolibri-explore-plugin==${exploreVersion}")
         }
 
-        pyc {
-            pip = false
-        }
-
-        // Django migrations work by looking for modules in the
-        // filesystem, so any packages containing them need to be
-        // extracted rather than loaded direcly from the asset zip file.
-        extractPackages("testapp")
+        // Django migrations and management commands work by looking for
+        // modules in the filesystem, so any packages containing them
+        // need to be extracted rather than loaded direcly from the
+        // asset zip file.
         extractPackages("kolibri")
         extractPackages("kolibri_explore_plugin")
     }
