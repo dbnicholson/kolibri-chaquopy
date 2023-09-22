@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
              }
         });
         setContentView(view);
-        view.loadUrl("file:///android_asset/welcomeScreen/index.html");
+        view.loadUrl("file:///android_asset/loadingScreen/index.html");
     }
 
     @Override

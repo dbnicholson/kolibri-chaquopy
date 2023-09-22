@@ -153,9 +153,6 @@ def setup(kolibri_home):
     os.environ["KOLIBRI_APPS_BUNDLE_PATH"] = str(pkg_path / "apps")
     os.environ["KOLIBRI_CONTENT_COLLECTIONS_PATH"] = str(pkg_path / "collections")
 
-    # Hardcoded for now
-    os.environ["KOLIBRI_INITIAL_CONTENT_PACK"] = "inventor"
-
     import kolibri.utils.logger
     kolibri.utils.logger.get_default_logging_config = get_empty_logging_config
 

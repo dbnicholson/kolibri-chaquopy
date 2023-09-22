@@ -124,10 +124,10 @@ val cleanAppsBundleTask = tasks.register<Delete>("cleanAppsBundle") {
     delete(appsBundleDirectory)
 }
 
-// Download and extract welcome-screen.zip into the build assets directory.
-val downloadWelcomeScreenTask = tasks.register<Download>("downloadWelcomeScreen") {
-    src("https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/welcome-screen.zip")
-    dest(layout.buildDirectory.file("download/welcome-screen.zip"))
+// Download and extract loading-screen.zip into the build assets directory.
+val downloadLoadingScreenTask = tasks.register<Download>("downloadLoadingScreen") {
+    src("https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/loading-screen.zip")
+    dest(layout.buildDirectory.file("download/loading-screen.zip"))
     onlyIfModified(true)
     useETag(true)
 }
@@ -140,16 +140,16 @@ abstract class CopyDirectoryTask : Copy() {
         get() = project.getObjects().directoryProperty().fileValue(getDestinationDir())
 }
 
-val extractWelcomeScreenTask = tasks.register<CopyDirectoryTask>("extractWelcomeScreen") {
-    from(zipTree(downloadWelcomeScreenTask.map { it.outputs.files.singleFile })) {
+val extractLoadingScreenTask = tasks.register<CopyDirectoryTask>("extractLoadingScreen") {
+    from(zipTree(downloadLoadingScreenTask.map { it.outputs.files.singleFile })) {
         // addGeneratedSourceDirectory takes the contents of the
         // directory, so prepend an additional directory in the output.
         eachFile {
-            relativePath = relativePath.prepend("welcomeScreen")
+            relativePath = relativePath.prepend("loadingScreen")
         }
         includeEmptyDirs = false
     }
-    into(layout.buildDirectory.dir("welcomeScreen"))
+    into(layout.buildDirectory.dir("loadingScreen"))
 }
 
 // Download and extract collections.zip into the python source
@@ -179,19 +179,19 @@ val cleanCollectionsTask = tasks.register<Delete>("cleanCollections") {
 // https://developer.android.com/build/extend-agp
 androidComponents {
     onVariants { variant ->
-        // Add extracted welcomeScreen assets directory.
+        // Add extracted loadingScreen assets directory.
         variant.sources.assets?.addGeneratedSourceDirectory(
-            extractWelcomeScreenTask,
+            extractLoadingScreenTask,
             CopyDirectoryTask::outputDir
         )
     }
 }
 
-// For some reason, extractWelcomeScreenTask isn't added as a dependency
+// For some reason, extractLoadingScreenTask isn't added as a dependency
 // of the task that handles the generated source directory. Hook into
 // preBuild to ensure it runs.
 tasks.named("preBuild").configure {
-    dependsOn(extractWelcomeScreenTask)
+    dependsOn(extractLoadingScreenTask)
 }
 
 // In order to support older AGP versions, chaquopy creates its tasks
