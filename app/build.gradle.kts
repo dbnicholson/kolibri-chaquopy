@@ -105,7 +105,7 @@ val appsBundleDirectory: Directory = layout.projectDirectory.dir("src/main/pytho
 
 val downloadAppsBundleTask = tasks.register<Download>("downloadAppsBundle") {
     src("https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/apps-bundle.zip")
-    dest(layout.buildDirectory.file("download/apps-bundle.zip"))
+    dest(layout.buildDirectory.file("download/apps-bundle-${exploreVersion}.zip"))
     onlyIfModified(true)
     useETag(true)
 }
@@ -127,7 +127,7 @@ val cleanAppsBundleTask = tasks.register<Delete>("cleanAppsBundle") {
 // Download and extract loading-screen.zip into the build assets directory.
 val downloadLoadingScreenTask = tasks.register<Download>("downloadLoadingScreen") {
     src("https://github.com/endlessm/kolibri-explore-plugin/releases/download/v${exploreVersion}/loading-screen.zip")
-    dest(layout.buildDirectory.file("download/loading-screen.zip"))
+    dest(layout.buildDirectory.file("download/loading-screen-${exploreVersion}.zip"))
     onlyIfModified(true)
     useETag(true)
 }
@@ -159,7 +159,7 @@ val collectionsDirectory: Directory = layout.projectDirectory.dir("src/main/pyth
 
 val downloadCollectionsTask = tasks.register<Download>("downloadCollections") {
     src("https://github.com/endlessm/endless-key-collections/releases/download/v${collectionsVersion}/collections.zip")
-    dest(layout.buildDirectory.file("download/collections.zip"))
+    dest(layout.buildDirectory.file("download/collections-${collectionsVersion}.zip"))
     onlyIfModified(true)
     useETag(true)
 }
