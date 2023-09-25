@@ -3,7 +3,9 @@
 // https://docs.gradle.org/current/kotlin-dsl/index.html
 
 import com.android.build.api.dsl.ManagedVirtualDevice
+import com.android.build.api.variant.VariantOutputConfiguration.OutputType
 import de.undercouch.gradle.tasks.download.Download
+import java.time.Instant
 
 plugins {
     id("com.android.application")
@@ -13,6 +15,20 @@ plugins {
 
 val exploreVersion: String by project
 val collectionsVersion: String by project
+
+// Configure the app's versionCode. We do this once here so that all
+// variants use the same version.
+var versionCode: Int
+if (project.hasProperty("versionCode")) {
+    println("Using versionCode property")
+    val versionCodeProp = project.property("versionCode") as String
+    versionCode = versionCodeProp.toInt()
+} else {
+    // Use the current time in seconds.
+    println("Using current time for versionCode")
+    versionCode = Instant.now().getEpochSecond().toInt()
+}
+println("versionCode is " + versionCode)
 
 // Android (AGP) configuration
 // https://developer.android.com/build/
@@ -26,7 +42,7 @@ android {
         applicationId = "org.endlessos.testapp"
         minSdk = 26
         targetSdk = 31
-        versionCode = 1
+
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -184,6 +200,11 @@ androidComponents {
             extractLoadingScreenTask,
             CopyDirectoryTask::outputDir
         )
+
+        // Set the versionCode.
+        variant.outputs
+            .filter { it.outputType == OutputType.SINGLE }
+            .forEach { it.versionCode = versionCode }
     }
 }
 
