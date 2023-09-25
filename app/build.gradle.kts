@@ -73,8 +73,9 @@ android {
 
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
             signingConfig = signingConfigs.findByName("upload")
+            isMinifyEnabled = true
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
 
