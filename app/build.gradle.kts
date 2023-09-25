@@ -209,11 +209,13 @@ androidComponents {
 
         // Set the versionCode.
         val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
-        val versionNamesTask = tasks.register<Exec>("output${taskVariant}VersionNames") {
+        val versionTask = tasks.register<Exec>("output${taskVariant}Version") {
             val pkgdir: Provider<Directory> = layout.buildDirectory.dir("python/pip/${variant.name}/common")
-            val output: Provider<RegularFile> = layout.buildDirectory.file("outputs/${variant.name}/version.json")
+            val output: Provider<RegularFile> = layout.buildDirectory.file("outputs/version-${variant.name}.json")
             commandLine(
-                "./scripts/version_name.py",
+                "./scripts/versions.py",
+                "--version-code",
+                versionCode.toString(),
                 "--pkgdir",
                 pkgdir.get().asFile.path,
                 "--output",
@@ -227,8 +229,8 @@ androidComponents {
             .forEach {
                 it.versionCode.set(versionCode)
                 it.versionName.set(
-                    versionNamesTask.map {
-                        val versionFile = it.outputs.files.singleFile
+                    versionTask.map { task ->
+                        val versionFile = task.outputs.files.singleFile
                         val slurper = JsonSlurper()
                         @Suppress("UNCHECKED_CAST")
                         val versionData = slurper.parse(versionFile) as Map<String, String>
@@ -263,7 +265,7 @@ project.afterEvaluate {
 
         variants.forEach { variant ->
             val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
-            val versionTask = tasks.named("output${taskVariant}VersionNames")
+            val versionTask = tasks.named("output${taskVariant}Version")
             val requirementsTask = tasks.named("generate${taskVariant}PythonRequirements")
             versionTask.configure {
                 dependsOn(requirementsTask)

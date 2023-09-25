@@ -125,9 +125,17 @@ if __name__ == "__main__":
         default=".",
         help="path to package directory (default: %(default)s)",
     )
+    ap.add_argument(
+        "-c",
+        "--version-code",
+        type=int,
+        help="versionCode value to include in output",
+    )
     args = ap.parse_args()
 
     data = get_version_data(args.pkgdir)
+    if args.version_code:
+        data["versionCode"] = args.version_code
     if args.output:
         os.makedirs(os.path.dirname(args.output), exist_ok=True)
         with open(args.output, "w") as f:
