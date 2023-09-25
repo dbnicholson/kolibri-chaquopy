@@ -3,8 +3,10 @@
 // https://docs.gradle.org/current/kotlin-dsl/index.html
 
 import com.android.build.api.dsl.ManagedVirtualDevice
+import com.android.build.api.variant.Variant
 import com.android.build.api.variant.VariantOutputConfiguration.OutputType
 import de.undercouch.gradle.tasks.download.Download
+import groovy.json.JsonSlurper
 import java.time.Instant
 
 plugins {
@@ -190,11 +192,15 @@ val cleanCollectionsTask = tasks.register<Delete>("cleanCollections") {
 }
 
 // Connect our tasks to external tasks.
+val variants = ArrayList<Variant>()
 
 // AGP extension API
 // https://developer.android.com/build/extend-agp
 androidComponents {
     onVariants { variant ->
+        // Keep track of the variant for use in afterEvalute.
+        variants.add(variant)
+
         // Add extracted loadingScreen assets directory.
         variant.sources.assets?.addGeneratedSourceDirectory(
             extractLoadingScreenTask,
@@ -202,9 +208,34 @@ androidComponents {
         )
 
         // Set the versionCode.
+        val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
+        val versionNamesTask = tasks.register<Exec>("output${taskVariant}VersionNames") {
+            val pkgdir: Provider<Directory> = layout.buildDirectory.dir("python/pip/${variant.name}/common")
+            val output: Provider<RegularFile> = layout.buildDirectory.file("outputs/${variant.name}/version.json")
+            commandLine(
+                "./scripts/version_name.py",
+                "--pkgdir",
+                pkgdir.get().asFile.path,
+                "--output",
+                output.get().asFile.path
+            )
+            inputs.dir(pkgdir)
+            outputs.file(output)
+        }
         variant.outputs
             .filter { it.outputType == OutputType.SINGLE }
-            .forEach { it.versionCode = versionCode }
+            .forEach {
+                it.versionCode.set(versionCode)
+                it.versionName.set(
+                    versionNamesTask.map {
+                        val versionFile = it.outputs.files.singleFile
+                        val slurper = JsonSlurper()
+                        @Suppress("UNCHECKED_CAST")
+                        val versionData = slurper.parse(versionFile) as Map<String, String>
+                        versionData.getValue("versionName")
+                    }
+                )
+            }
     }
 }
 
@@ -228,6 +259,15 @@ project.afterEvaluate {
         tasks.named("extractPythonBuildPackages").configure {
             inputs.files(extractAppsBundleTask.map { it.outputs.files })
             inputs.files(extractCollectionsTask.map { it.outputs.files })
+        }
+
+        variants.forEach { variant ->
+            val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
+            val versionTask = tasks.named("output${taskVariant}VersionNames")
+            val requirementsTask = tasks.named("generate${taskVariant}PythonRequirements")
+            versionTask.configure {
+                dependsOn(requirementsTask)
+            }
         }
     }
 }
