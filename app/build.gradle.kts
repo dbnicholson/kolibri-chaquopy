@@ -7,7 +7,9 @@ import com.android.build.api.variant.Variant
 import com.android.build.api.variant.VariantOutputConfiguration.OutputType
 import de.undercouch.gradle.tasks.download.Download
 import groovy.json.JsonSlurper
+import java.io.FileInputStream
 import java.time.Instant
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -54,11 +56,28 @@ android {
         }
     }
 
+    signingConfigs {
+        val uploadPropFile = rootProject.file("upload.properties")
+        if (uploadPropFile.exists()) {
+            val uploadProps = Properties()
+            uploadProps.load(FileInputStream(uploadPropFile))
+
+            create("upload") {
+                storeFile = file(uploadProps["storeFile"] as String)
+                storePassword = uploadProps["storePassword"] as String
+                keyAlias = uploadProps["keyAlias"] as String
+                keyPassword = uploadProps["keyPassword"] as String
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("upload")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
