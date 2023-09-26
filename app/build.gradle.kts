@@ -151,7 +151,7 @@ val downloadAppsBundleTask = tasks.register<Download>("downloadAppsBundle") {
 }
 
 val extractAppsBundleTask = tasks.register<Copy>("extractAppsBundle") {
-    from(zipTree(downloadAppsBundleTask.map { it.outputs.files.singleFile })) {
+    from(zipTree(downloadAppsBundleTask.map { it.dest })) {
         eachFile {
             relativePath = RelativePath(true, *relativePath.segments.drop(1).toTypedArray())
         }
@@ -200,8 +200,9 @@ abstract class CollectBuildAssetsTask : DefaultTask() {
 }
 
 val collectBuildAssetsTask = tasks.register<CollectBuildAssetsTask>("collectBuildAssets") {
-    inputs.files(downloadLoadingScreenTask.map { it.dest })
+    inputs.files(downloadLoadingScreenTask)
     loadingScreenZip.set(
+        // Coerce the File into a RegularFileProperty.
         downloadLoadingScreenTask.flatMap {
             getObjects().fileProperty().fileValue(it.dest)
         }
@@ -221,7 +222,7 @@ val downloadCollectionsTask = tasks.register<Download>("downloadCollections") {
 }
 
 val extractCollectionsTask = tasks.register<Copy>("extractCollections") {
-    from(zipTree(downloadCollectionsTask.map { it.outputs.files.singleFile }))
+    from(zipTree(downloadCollectionsTask.map { it.dest }))
     into(collectionsDirectory)
 }
 
@@ -290,8 +291,8 @@ project.afterEvaluate {
         // Add extracted apps-bundle and collections files as inputs to
         // extracting the local python files.
         tasks.named("extractPythonBuildPackages").configure {
-            inputs.files(extractAppsBundleTask.map { it.outputs.files })
-            inputs.files(extractCollectionsTask.map { it.outputs.files })
+            inputs.files(extractAppsBundleTask)
+            inputs.files(extractCollectionsTask)
         }
 
         variants.forEach { variant ->
