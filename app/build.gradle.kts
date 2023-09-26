@@ -174,22 +174,38 @@ val downloadLoadingScreenTask = tasks.register<Download>("downloadLoadingScreen"
 
 // AGP's addGeneratedSourceDirectory wants a DirectoryProperty, but Copy
 // doesn't provide one.
-abstract class CopyDirectoryTask : Copy() {
-    @get:Internal
-    val outputDir: DirectoryProperty
-        get() = project.getObjects().directoryProperty().fileValue(getDestinationDir())
+abstract class CollectBuildAssetsTask : DefaultTask() {
+    @get:InputFile
+    abstract val loadingScreenZip: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun run() {
+        val proj = getProject()
+        val dest = outputDir.get()
+        proj.delete(dest)
+        proj.mkdir(dest)
+        proj.copy {
+            from(proj.zipTree(loadingScreenZip.get())) {
+                eachFile {
+                    relativePath = relativePath.prepend("loadingScreen")
+                }
+                includeEmptyDirs = false
+            }
+            into(dest)
+        }
+    }
 }
 
-val extractLoadingScreenTask = tasks.register<CopyDirectoryTask>("extractLoadingScreen") {
-    from(zipTree(downloadLoadingScreenTask.map { it.outputs.files.singleFile })) {
-        // addGeneratedSourceDirectory takes the contents of the
-        // directory, so prepend an additional directory in the output.
-        eachFile {
-            relativePath = relativePath.prepend("loadingScreen")
+val collectBuildAssetsTask = tasks.register<CollectBuildAssetsTask>("collectBuildAssets") {
+    inputs.files(downloadLoadingScreenTask.map { it.dest })
+    loadingScreenZip.set(
+        downloadLoadingScreenTask.flatMap {
+            getObjects().fileProperty().fileValue(it.dest)
         }
-        includeEmptyDirs = false
-    }
-    into(layout.buildDirectory.dir("loadingScreen"))
+    )
 }
 
 // Download and extract collections.zip into the python source
@@ -225,8 +241,8 @@ androidComponents {
 
         // Add extracted loadingScreen assets directory.
         variant.sources.assets?.addGeneratedSourceDirectory(
-            extractLoadingScreenTask,
-            CopyDirectoryTask::outputDir
+            collectBuildAssetsTask,
+            CollectBuildAssetsTask::outputDir
         )
 
         // Set the versionCode.
@@ -261,13 +277,6 @@ androidComponents {
                 )
             }
     }
-}
-
-// For some reason, extractLoadingScreenTask isn't added as a dependency
-// of the task that handles the generated source directory. Hook into
-// preBuild to ensure it runs.
-tasks.named("preBuild").configure {
-    dependsOn(extractLoadingScreenTask)
 }
 
 // In order to support older AGP versions, chaquopy creates its tasks
