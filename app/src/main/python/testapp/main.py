@@ -63,6 +63,7 @@ def get_logging_config(LOG_ROOT, debug=False, debug_database=False):
 
     return {
         "version": 1,
+        "disable_existing_loggers": False,
         "formatters": {
             "simple": {
                 "format": "%(name)s: %(message)s",
@@ -118,10 +119,6 @@ def get_logging_config(LOG_ROOT, debug=False, debug_database=False):
     }
 
 
-def get_empty_logging_config(*args, **kwargs):
-    return {"version": 1}
-
-
 def setup(kolibri_home):
     global kolibri_initialized
     if kolibri_initialized:
@@ -155,7 +152,7 @@ def setup(kolibri_home):
     os.environ["KOLIBRI_CONTENT_COLLECTIONS_PATH"] = str(pkg_path / "collections")
 
     import kolibri.utils.logger
-    kolibri.utils.logger.get_default_logging_config = get_empty_logging_config
+    kolibri.utils.logger.get_default_logging_config = get_logging_config
 
     from kolibri.utils import env
     env.set_env()
