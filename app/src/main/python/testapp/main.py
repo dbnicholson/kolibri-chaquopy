@@ -15,6 +15,7 @@ DISABLED_PLUGINS = [
 REQUIRED_PLUGINS = [
     "kolibri.plugins.app",
     "kolibri_explore_plugin",
+    "kolibri_zim_plugin",
 ]
 
 class AndroidLogHandler(logging.Handler):

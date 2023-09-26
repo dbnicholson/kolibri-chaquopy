@@ -110,6 +110,7 @@ chaquopy {
         pip {
             install("https://github.com/learningequality/kolibri/releases/download/v0.16.0-beta5/kolibri-0.16.0b5-py2.py3-none-any.whl")
             install("kolibri-explore-plugin==${exploreVersion}")
+            install("kolibri-zim-plugin==1.4.2")
         }
 
         // Django migrations and management commands work by looking for
