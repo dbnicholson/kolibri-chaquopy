@@ -298,8 +298,27 @@ project.afterEvaluate {
             val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
             val versionTask = tasks.named("output${taskVariant}Version")
             val requirementsTask = tasks.named("generate${taskVariant}PythonRequirements")
+            val requirementsAssetsTask = tasks.named("generate${taskVariant}PythonRequirementsAssets")
             versionTask.configure {
                 dependsOn(requirementsTask)
+            }
+
+            val pruneTask = tasks.register<Exec>("prune${taskVariant}PythonPackages") {
+                val pkgroot = layout.buildDirectory.dir("python/pip/${variant.name}")
+                val report = layout.buildDirectory.file("outputs/logs/prune-${variant.name}-report.txt")
+                commandLine(
+                    "./scripts/prune.py",
+                    "--pkgroot",
+                    pkgroot.get().asFile.path,
+                    "--report",
+                    report.get().asFile.path
+                )
+            }
+            pruneTask.configure {
+                inputs.files(requirementsTask)
+            }
+            requirementsAssetsTask.configure {
+                dependsOn(pruneTask)
             }
         }
     }
