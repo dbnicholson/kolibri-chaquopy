@@ -75,6 +75,7 @@ android {
         getByName("release") {
             signingConfig = signingConfigs.findByName("upload")
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
     }
