@@ -1,11 +1,10 @@
 package org.endlessos.testapp;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 import android.content.Context;
 import android.util.Log;
@@ -21,8 +20,8 @@ public class KolibriUtils {
         return new File(context.getFilesDir(), "kolibri");
     }
 
-    public static Path getSetupLockPath(Context context) {
-        return new File(context.getFilesDir(), "setup.lock").toPath();
+    public static File getSetupLockFile(Context context) {
+        return new File(context.getFilesDir(), "setup.lock");
     }
 
     public static synchronized void setupKolibri(Context context) throws IOException {
@@ -30,13 +29,12 @@ public class KolibriUtils {
             Log.d(TAG, "Skipping Kolibri setup");
         }
 
-        final Path lockPath = getSetupLockPath(context);
-        Log.i(TAG, "Acquiring Kolibri setup lock " + lockPath.toString());
+        final File lockFile = getSetupLockFile(context);
+        Log.i(TAG, "Acquiring Kolibri setup lock " + lockFile.toString());
         try (
-            FileChannel lockChannel = FileChannel.open(lockPath,
-                                                       StandardOpenOption.WRITE,
-                                                       StandardOpenOption.CREATE);
-            FileLock lock = lockChannel.lock();
+            final FileOutputStream lockStream = new FileOutputStream(lockFile);
+            final FileChannel lockChannel = lockStream.getChannel();
+            final FileLock lock = lockChannel.lock();
         ) {
             final String kolibriHome = getKolibriHome(context).toString();
             Python python = Python.getInstance();

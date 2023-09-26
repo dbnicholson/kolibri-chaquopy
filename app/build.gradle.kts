@@ -44,7 +44,7 @@ android {
 
     defaultConfig {
         applicationId = "org.endlessos.testapp"
-        minSdk = 26
+        minSdk = 24
         targetSdk = 31
 
         versionName = "1.0"
