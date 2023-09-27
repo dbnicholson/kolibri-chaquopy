@@ -24,15 +24,15 @@ val collectionsVersion: String by project
 // variants use the same version.
 var versionCode: Int
 if (project.hasProperty("versionCode")) {
-    println("Using versionCode property")
+    logger.info("Using versionCode property")
     val versionCodeProp = project.property("versionCode") as String
     versionCode = versionCodeProp.toInt()
 } else {
     // Use the current time in seconds.
-    println("Using current time for versionCode")
+    logger.info("Using current time for versionCode")
     versionCode = Instant.now().getEpochSecond().toInt()
 }
-println("versionCode is " + versionCode)
+logger.quiet("Using versionCode {}", versionCode)
 
 // Android (AGP) configuration
 // https://developer.android.com/build/
