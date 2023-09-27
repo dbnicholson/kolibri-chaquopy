@@ -6,7 +6,3 @@ plugins {
     id("com.chaquo.python") version "15.0.1" apply false
     id("de.undercouch.download") version "5.5.0" apply false
 }
-
-tasks.register<Delete>("clean") {
-    delete(rootProject.buildDir)
-}
