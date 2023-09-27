@@ -40,12 +40,12 @@ println("versionCode is " + versionCode)
 android {
     namespace = "org.endlessos.testapp"
 
-    compileSdk = 31
+    compileSdk = 33
 
     defaultConfig {
         applicationId = "org.endlessos.testapp"
         minSdk = 24
-        targetSdk = 31
+        targetSdk = 33
 
         versionName = "1.0"
 
