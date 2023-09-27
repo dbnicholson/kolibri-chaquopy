@@ -230,6 +230,44 @@ val cleanCollectionsTask = tasks.register<Delete>("cleanCollections") {
     delete(collectionsDirectory)
 }
 
+// Create a task per variant that generates a JSON file with version
+// names that will be used to set versionName below.
+fun createVersionTask(variantName: String): TaskProvider<Exec> {
+    val taskVariant = variantName.replaceFirstChar { it.uppercase() }
+    return tasks.register<Exec>("output${taskVariant}Version") {
+        val pkgdir = layout.buildDirectory.dir("python/pip/${variantName}/common")
+        val output = layout.buildDirectory.file("outputs/version-${variantName}.json")
+        commandLine(
+            "./scripts/versions.py",
+            "--version-code",
+            versionCode.toString(),
+            "--pkgdir",
+            pkgdir.get().asFile.path,
+            "--output",
+            output.get().asFile.path
+        )
+        inputs.dir(pkgdir)
+        outputs.file(output)
+    }
+}
+
+// Create a task per variant that prunes unwanted files from the
+// extracted python packages.
+fun createPruneTask(variantName: String): TaskProvider<Exec> {
+    val taskVariant = variantName.replaceFirstChar { it.uppercase() }
+    return tasks.register<Exec>("prune${taskVariant}PythonPackages") {
+        val pkgroot = layout.buildDirectory.dir("python/pip/${variantName}")
+        val report = layout.buildDirectory.file("outputs/logs/prune-${variantName}-report.txt")
+        commandLine(
+            "./scripts/prune.py",
+            "--pkgroot",
+            pkgroot.get().asFile.path,
+            "--report",
+            report.get().asFile.path
+        )
+    }
+}
+
 // Connect our tasks to external tasks.
 val variants = ArrayList<Variant>()
 
@@ -247,22 +285,7 @@ androidComponents {
         )
 
         // Set the versionCode.
-        val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
-        val versionTask = tasks.register<Exec>("output${taskVariant}Version") {
-            val pkgdir: Provider<Directory> = layout.buildDirectory.dir("python/pip/${variant.name}/common")
-            val output: Provider<RegularFile> = layout.buildDirectory.file("outputs/version-${variant.name}.json")
-            commandLine(
-                "./scripts/versions.py",
-                "--version-code",
-                versionCode.toString(),
-                "--pkgdir",
-                pkgdir.get().asFile.path,
-                "--output",
-                output.get().asFile.path
-            )
-            inputs.dir(pkgdir)
-            outputs.file(output)
-        }
+        val versionTask = createVersionTask(variant.name)
         variant.outputs
             .filter { it.outputType == OutputType.SINGLE }
             .forEach {
@@ -297,28 +320,24 @@ project.afterEvaluate {
 
         variants.forEach { variant ->
             val taskVariant = variant.name.replaceFirstChar { it.uppercase() }
-            val versionTask = tasks.named("output${taskVariant}Version")
             val requirementsTask = tasks.named("generate${taskVariant}PythonRequirements")
             val requirementsAssetsTask = tasks.named("generate${taskVariant}PythonRequirementsAssets")
+
+            // Order the version task after the packages have been extracted.
+            val versionTask = tasks.named("output${taskVariant}Version")
             versionTask.configure {
-                dependsOn(requirementsTask)
+                inputs.files(requirementsTask)
             }
 
-            val pruneTask = tasks.register<Exec>("prune${taskVariant}PythonPackages") {
-                val pkgroot = layout.buildDirectory.dir("python/pip/${variant.name}")
-                val report = layout.buildDirectory.file("outputs/logs/prune-${variant.name}-report.txt")
-                commandLine(
-                    "./scripts/prune.py",
-                    "--pkgroot",
-                    pkgroot.get().asFile.path,
-                    "--report",
-                    report.get().asFile.path
-                )
-            }
+            // Order the pruning task after the packages have been
+            // extracted but before they've been zipped into assets.
+            val pruneTask = createPruneTask(variant.name)
             pruneTask.configure {
                 inputs.files(requirementsTask)
             }
             requirementsAssetsTask.configure {
+                // dependsOn is used here instead of wiring the prune
+                // task outputs since there aren't any outputs.
                 dependsOn(pruneTask)
             }
         }
