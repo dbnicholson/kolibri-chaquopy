@@ -4,27 +4,39 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <application android:name="com.chaquo.python.android.PyApplication"
-                 android:label="Test App"
-                 android:icon="@mipmap/icon"
-                 android:theme="@android:style/Theme.Material.Light.NoActionBar"
-                 android:usesCleartextTraffic="true"
-                 android:allowBackup="true">
-        <activity android:name=".MainActivity"
-                  android:exported="true">
+    <application
+        android:name="com.chaquo.python.android.PyApplication"
+        android:allowBackup="true"
+        android:icon="@mipmap/icon"
+        android:label="Test App"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
+        </activity>
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
             </intent-filter>
         </activity>
 
-        <service android:name=".KolibriService"
-                 android:exported="false"
-                 android:process=":kolibri" />
-
-        <service android:name=".WorkerService"
-                 android:exported="false"
-                 android:process=":worker" />
+        <service
+            android:name=".KolibriService"
+            android:exported="false"
+            android:process=":kolibri" />
+        <service
+            android:name=".WorkerService"
+            android:exported="false"
+            android:process=":worker" />
     </application>
 
 </manifest>
