@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toolbar;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -34,6 +35,8 @@ public class SettingsActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        getActionBar().setTitle("Endless Key Settings");
+
         final Button importContentButton = findViewById(R.id.importContentButton);
         importContentButton.setOnClickListener(
                 new View.OnClickListener() {
@@ -55,6 +58,28 @@ public class SettingsActivity extends Activity {
                 Intent.createChooser(chooseFile, "Choose a file"),
                 CHOOSE_FILE_RESULT_CODE
         );
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode != CHOOSE_FILE_RESULT_CODE) {
+            return;
+        }
+
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+
+        try {
+            copyKolibriContent(
+                    data.getData(),
+                    KolibriUtils.getKolibriHome(getBaseContext())
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     protected void copyKolibriContent(Uri sourceContent, File outputDirectory) throws IOException {
@@ -115,28 +140,6 @@ public class SettingsActivity extends Activity {
                 fileOutput.close();
                 zipInput.closeEntry();
             }
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode != CHOOSE_FILE_RESULT_CODE) {
-            return;
-        }
-
-        if (resultCode != Activity.RESULT_OK) {
-            return;
-        }
-
-        try {
-            copyKolibriContent(
-                    data.getData(),
-                    KolibriUtils.getKolibriHome(getBaseContext())
-            );
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }
