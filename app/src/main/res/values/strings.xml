@@ -1,4 +1,6 @@
 <resources>
     <string name="settings_short_label">Settings</string>
     <string name="settings_long_label">Settings</string>
+    <string name="settings_choose_content_label">Choose content zip</string>
+    <string name="settings_import_content_label">Import</string>
 </resources>
